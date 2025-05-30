@@ -3,8 +3,12 @@ from collections import Counter
 import pandas as pd
 from RandomForestParams import FIXED_PARAMS
 from DecisionTree import DecisionTree
+import time
 
-def segmenta_dataset(x, y, test_size=0.2):
+def segmenta_dataset(x, y, test_size=0.2, random_state=None):
+    if random_state:
+        np.random.seed(random_state)
+
     n_samples = x.shape[0]
     test_samples = int(n_samples * test_size)
     indices = np.random.permutation(n_samples)
@@ -49,13 +53,17 @@ class RandomForest:
         return np.array([self._voto_majoritario(pred) for pred in tree_preds])
 
 if __name__ == "__main__":
+    start_time = time.time()
     data = np.genfromtxt('treino_sinais_vitais_com_label.txt', delimiter=',', skip_header=1)
-    x = data[:, :-1]
+    x = data[:, :-2]
     y = data[:, -1].astype(int)
 
     x_train, x_test, y_train, y_test = segmenta_dataset(x, y, test_size=0.2)
-
     clf = RandomForest(**FIXED_PARAMS)
     clf.fit(x_train, y_train)
+    print(f"Time Spent Training: {time.time() - start_time}s")
+
+    start_time = time.time()
     predictions = clf.predict(x_test)
     print(f'Accuracy: {taxa_acertos(y_test, predictions)}')
+    print(f"Time Spent Predicting: {time.time() - start_time}s")
